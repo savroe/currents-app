@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Currents">
+<title>Currents</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep:   #2D6E6E;
+    --teal-mid:    #5FA8A8;
+    --teal-soft:   #9ECECE;
+    --coral:       #E0857A;
+    --sage:        #8FA89A;
+    --pebble:      #F4F1EC;
+    --sand:        #E2DDD6;
+    --kelp:        #2C3830;
+    --white:       #FFFFFF;
+    --status-ip:   #E0857A;
+    --status-fin:  #5FA8A8;
+    --status-pau:  #C4A882;
+    --status-drp:  #B08A8A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--pebble);
+    color: var(--kelp);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--teal-deep);
+    padding: 52px 22px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow: hidden;
+  }
+  .app-header::before {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -20px;
+    width: 120%; height: 60px;
+    background: var(--pebble);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    z-index: 1;
+  }
+  .header-inner { position: relative; z-index: 2; }
+  .header-date {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--teal-soft);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--white);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .wave-dots {
+    position: absolute;
+    top: 12px; right: 20px;
+    display: flex; gap: 5px; align-items: flex-end;
+  }
+  .wave-dots span {
+    display: block;
+    width: 5px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 3px;
+    animation: waveBar 1.4s ease-in-out infinite;
+  }
+  .wave-dots span:nth-child(1) { height: 10px; animation-delay: 0s; }
+  .wave-dots span:nth-child(2) { height: 18px; animation-delay: 0.15s; }
+  .wave-dots span:nth-child(3) { height: 12px; animation-delay: 0.3s; }
+  .wave-dots span:nth-child(4) { height: 20px; animation-delay: 0.45s; }
+  .wave-dots span:nth-child(5) { height: 8px; animation-delay: 0.6s; }
+
+  @keyframes waveBar {
+    0%, 100% { opacity: 0.25; transform: scaleY(1); }
+    50% { opacity: 0.6; transform: scaleY(1.3); }
+  }
+
+  /* ── SCROLL CONTENT ── */
+  .content {
+    padding: 32px 16px 100px;
+    animation: fadeUp 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HOME ── */
+  .home-greeting {
+    font-size: 13px;
+    color: var(--sage);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .home-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .home-card:active { transform: scale(0.98); }
+  .home-card-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .home-card-body { flex: 1; min-width: 0; }
+  .home-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--kelp);
+    margin-bottom: 3px;
+  }
+  .home-card-sub {
+    font-size: 12px;
+    color: var(--sage);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .home-card-badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(224,133,122,0.12);
+    color: var(--coral);
+    border-radius: 20px;
+    padding: 3px 10px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .home-card-badge.none {
+    background: var(--pebble);
+    color: var(--sage);
+  }
+
+  /* ── SECTION HEADER ── */
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-head-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-icon {
+    font-size: 20px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--kelp);
+    letter-spacing: -0.3px;
+  }
+  .section-count {
+    font-size: 11px;
+    background: var(--sand);
+    color: var(--sage);
+    border-radius: 20px;
+    padding: 2px 9px;
+    font-weight: 500;
+  }
+
+  /* ── ADD BUTTON ── */
+  .btn-add {
+    background: var(--teal-deep);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .btn-add:active { transform: scale(0.96); }
+  .btn-add.cancel {
+    background: var(--sand);
+    color: var(--kelp);
+  }
+
+  /* ── ADD FORM ── */
+  .add-form {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    animation: fadeUp 0.2s ease both;
+  }
+  .form-input {
+    width: 100%;
+    border: 1.5px solid var(--sand);
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--kelp);
+    background: var(--pebble);
+    outline: none;
+    margin-bottom: 9px;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--teal-mid); }
+  .form-input::placeholder { color: var(--sage); }
+  textarea.form-input { resize: none; line-height: 1.6; }
+
+  .status-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .status-pill {
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: 1.5px solid var(--sand);
+    background: var(--white);
+    color: var(--sage);
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .status-pill.active-ip  { border-color: var(--status-ip);  background: var(--status-ip);  color: #fff; }
+  .status-pill.active-fin { border-color: var(--status-fin); background: var(--status-fin); color: #fff; }
+  .status-pill.active-pau { border-color: var(--status-pau); background: var(--status-pau); color: #fff; }
+  .status-pill.active-drp { border-color: var(--status-drp); background: var(--status-drp); color: #fff; }
+
+  .btn-save {
+    width: 100%;
+    background: var(--teal-deep);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .btn-save:active { transform: scale(0.98); }
+
+  /* ── ITEM CARDS ── */
+  .item-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: 14px;
+    padding: 14px 15px;
+    margin-bottom: 9px;
+    animation: fadeUp 0.2s ease both;
+  }
+  .item-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .item-card-info { flex: 1; min-width: 0; }
+  .item-title-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 3px; flex-wrap: wrap;
+  }
+  .item-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--kelp);
+  }
+  .status-badge {
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 2px 9px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .badge-ip  { background: rgba(224,133,122,0.13); color: var(--status-ip); }
+  .badge-fin { background: rgba(95,168,168,0.13);  color: var(--status-fin); }
+  .badge-pau { background: rgba(196,168,130,0.15); color: var(--status-pau); }
+  .badge-drp { background: rgba(176,138,138,0.15); color: var(--status-drp); }
+
+  .item-note {
+    font-size: 12px;
+    color: var(--sage);
+    margin-bottom: 3px;
+    line-height: 1.4;
+  }
+  .item-date {
+    font-size: 11px;
+    color: #BBCDC7;
+    letter-spacing: 0.3px;
+  }
+  .item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+  .btn-edit, .btn-del {
+    border-radius: 8px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid var(--sand);
+    background: var(--white);
+    color: var(--kelp);
+    transition: all 0.15s;
+  }
+  .btn-del {
+    border-color: rgba(224,133,122,0.4);
+    color: var(--coral);
+  }
+  .btn-edit:active { background: var(--pebble); }
+  .btn-del:active  { background: rgba(224,133,122,0.08); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 28px 16px;
+    border: 1.5px dashed var(--sand);
+    border-radius: 14px;
+    color: var(--sage);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .empty-state .empty-icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* ── JOURNAL ── */
+  .mood-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .mood-btn {
+    font-size: 22px;
+    background: var(--pebble);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mood-btn.selected {
+    border-color: var(--teal-mid);
+    background: rgba(95,168,168,0.1);
+  }
+
+  .journal-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    border-radius: 14px;
+    padding: 14px 15px;
+    margin-bottom: 9px;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+    animation: fadeUp 0.2s ease both;
+  }
+  .journal-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .journal-card-left { display: flex; align-items: center; gap: 10px; }
+  .journal-mood { font-size: 22px; }
+  .journal-meta-date { font-size: 13px; font-weight: 600; color: var(--kelp); }
+  .journal-meta-time { font-size: 11px; color: #BBCDC7; }
+  .journal-chevron { font-size: 11px; color: var(--sage); transition: transform 0.2s; }
+  .journal-chevron.open { transform: rotate(180deg); }
+  .journal-preview {
+    font-size: 13px;
+    color: var(--sage);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .journal-full {
+    font-size: 14px;
+    color: var(--kelp);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    padding-top: 10px;
+    border-top: 1px solid var(--sand);
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .journal-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: var(--white);
+    border-top: 1px solid var(--sand);
+    display: flex;
+    z-index: 200;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px 4px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: opacity 0.15s;
+  }
+  .nav-btn:active { opacity: 0.7; }
+  .nav-icon { font-size: 20px; }
+  .nav-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--sage);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn.active .nav-label { color: var(--teal-deep); }
+  .nav-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--teal-deep);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .nav-btn.active .nav-dot { opacity: 1; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="wave-dots">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="header-inner">
+    <div class="header-date" id="headerDate"></div>
+    <div class="header-title">Currents</div>
+  </div>
+</div>
+
+<!-- PAGES -->
+<div id="app"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="navigate('home')" id="nav-home">
+    <span class="nav-icon">⌂</span>
+    <span class="nav-label">Home</span>
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" onclick="navigate('watching')" id="nav-watching">
+    <span class="nav-icon">▶</span>
+    <span class="nav-label">Watch</span>
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" onclick="navigate('reading')" id="nav-reading">
+    <span class="nav-icon">📖</span>
+    <span class="nav-label">Read</span>
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" onclick="navigate('listening')" id="nav-listening">
+    <span class="nav-icon">♪</span>
+    <span class="nav-label">Listen</span>
+    <span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" onclick="navigate('journal')" id="nav-journal">
+    <span class="nav-icon">✍️</span>
+    <span class="nav-label">Journal</span>
+    <span class="nav-dot"></span>
+  </button>
+</nav>
+
+<script>
+// ── STATE ──
+let currentTab = 'home';
+let editingId = null;
+let expandedJournalId = null;
+let showingAddForm = { watching: false, reading: false, listening: false, journal: false };
+let formData = { title: '', note: '', status: 'In Progress', text: '', mood: '😊' };
+
+const SECTIONS = {
+  watching:  { label: 'Watching',  icon: '▶',  placeholder: 'What are you watching?',    storageKey: 'currents-watching' },
+  reading:   { label: 'Reading',   icon: '📖', placeholder: 'What are you reading?',     storageKey: 'currents-reading' },
+  listening: { label: 'Listening', icon: '♪',  placeholder: 'What are you listening to?', storageKey: 'currents-listening' },
+};
+
+const STATUSES = ['In Progress', 'Finished', 'Paused', 'Dropped'];
+const MOODS = ['😊','😌','😐','😔','😤','🥳','😴','🤔','💭','🌊'];
+
+const statusClass = { 'In Progress': 'ip', 'Finished': 'fin', 'Paused': 'pau', 'Dropped': 'drp' };
+
+// ── STORAGE ──
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+}
+function save(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+
+// ── DATE ──
+function setHeaderDate() {
+  const d = new Date();
+  document.getElementById('headerDate').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+// ── NAVIGATION ──
+function navigate(tab) {
+  currentTab = tab;
+  editingId = null;
+  expandedJournalId = null;
+  showingAddForm = { watching: false, reading: false, listening: false, journal: false };
+  formData = { title: '', note: '', status: 'In Progress', text: '', mood: '😊' };
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab).classList.add('active');
+  render();
+}
+
+// ── RENDER ──
+function render() {
+  const app = document.getElementById('app');
+  if (currentTab === 'home') app.innerHTML = renderHome();
+  else if (currentTab === 'journal') app.innerHTML = renderJournal();
+  else app.innerHTML = renderMediaSection(currentTab);
+}
+
+// ── HOME ──
+function renderHome() {
+  const sections = ['watching', 'reading', 'listening'];
+  const journalItems = load('currents-journal');
+
+  let cards = sections.map(key => {
+    const s = SECTIONS[key];
+    const items = load(s.storageKey);
+    const active = items.filter(i => i.status === 'In Progress');
+    const sub = active.length > 0
+      ? active.slice(0, 2).map(i => i.title).join(', ') + (active.length > 2 ? ` +${active.length - 2} more` : '')
+      : 'Nothing active yet';
+    const badgeClass = active.length > 0 ? '' : 'none';
+    const badgeText = active.length > 0 ? `${active.length} active` : 'none';
+    return `
+      <div class="home-card" onclick="navigate('${key}')">
+        <div class="home-card-icon">${s.icon}</div>
+        <div class="home-card-body">
+          <div class="home-card-title">${s.label}</div>
+          <div class="home-card-sub">${escHtml(sub)}</div>
+        </div>
+        <div class="home-card-badge ${badgeClass}">${badgeText}</div>
+      </div>`;
+  }).join('');
+
+  const jBadge = journalItems.length > 0 ? `${journalItems.length} entries` : 'none';
+  const jBadgeClass = journalItems.length > 0 ? '' : 'none';
+  const lastEntry = journalItems[0];
+  const jSub = lastEntry ? `Last: ${lastEntry.date}` : 'No entries yet';
+
+  cards += `
+    <div class="home-card" onclick="navigate('journal')">
+      <div class="home-card-icon">✍️</div>
+      <div class="home-card-body">
+        <div class="home-card-title">Journal</div>
+        <div class="home-card-sub">${escHtml(jSub)}</div>
+      </div>
+      <div class="home-card-badge ${jBadgeClass}">${jBadge}</div>
+    </div>`;
+
+  return `<div class="content">
+    <p class="home-greeting">Here's what you're flowing through right now.</p>
+    ${cards}
+  </div>`;
+}
+
+// ── MEDIA SECTION ──
+function renderMediaSection(key) {
+  const s = SECTIONS[key];
+  const items = load(s.storageKey);
+  const showing = showingAddForm[key];
+
+  let formHtml = '';
+  if (showing && editingId === null) {
+    formHtml = `
+      <div class="add-form">
+        <input class="form-input" id="fi-title" placeholder="${s.placeholder}" value="${escHtml(formData.title)}" oninput="formData.title=this.value" onkeydown="if(event.key==='Enter')saveItem('${key}')">
+        <input class="form-input" id="fi-note" placeholder="Add a note (optional)" value="${escHtml(formData.note)}" oninput="formData.note=this.value">
+        <div class="status-row">${STATUSES.map(st => `
+          <button class="status-pill ${formData.status===st?'active-'+statusClass[st]:''}" onclick="formData.status='${st}';render()">${st}</button>`).join('')}
+        </div>
+        <button class="btn-save" onclick="saveItem('${key}')">Save</button>
+      </div>`;
+  }
+
+  let itemsHtml = '';
+  if (items.length === 0 && !showing) {
+    itemsHtml = `<div class="empty-state"><div class="empty-icon">${s.icon}</div>Nothing here yet.<br>Tap + Add to get started.</div>`;
+  } else {
+    itemsHtml = items.map(item => {
+      if (editingId === item.id) {
+        return `
+          <div class="add-form">
+            <input class="form-input" value="${escHtml(item.title)}" id="ei-title-${item.id}" oninput="">
+            <input class="form-input" value="${escHtml(item.note||'')}" id="ei-note-${item.id}" placeholder="Note" oninput="">
+            <div class="status-row">${STATUSES.map(st => `
+              <button class="status-pill ${item.status===st?'active-'+statusClass[st]:''}" onclick="updateEditStatus('${key}',${item.id},'${st}')">${st}</button>`).join('')}
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-save" style="flex:1" onclick="saveEdit('${key}',${item.id})">Save</button>
+              <button class="btn-save" style="flex:0;background:var(--sand);color:var(--kelp)" onclick="editingId=null;render()">Cancel</button>
+            </div>
+          </div>`;
+      }
+      const sc = statusClass[item.status] || 'ip';
+      return `
+        <div class="item-card">
+          <div class="item-card-top">
+            <div class="item-card-info">
+              <div class="item-title-row">
+                <span class="item-name">${escHtml(item.title)}</span>
+                <span class="status-badge badge-${sc}">${item.status}</span>
+              </div>
+              ${item.note ? `<div class="item-note">${escHtml(item.note)}</div>` : ''}
+              <div class="item-date">${item.date}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn-edit" onclick="startEdit('${key}',${item.id})">Edit</button>
+              <button class="btn-del" onclick="deleteItem('${key}',${item.id})">✕</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  return `<div class="content">
+    <div class="section-head">
+      <div class="section-head-left">
+        <span class="section-icon">${s.icon}</span>
+        <span class="section-title">${s.label}</span>
+        ${items.length > 0 ? `<span class="section-count">${items.length}</span>` : ''}
+      </div>
+      <button class="btn-add ${showing?'cancel':''}" onclick="toggleAdd('${key}')">${showing?'Cancel':'+ Add'}</button>
+    </div>
+    ${formHtml}
+    ${itemsHtml}
+  </div>`;
+}
+
+// ── JOURNAL ──
+function renderJournal() {
+  const entries = load('currents-journal');
+  const showing = showingAddForm.journal;
+
+  let formHtml = '';
+  if (showing) {
+    formHtml = `
+      <div class="add-form">
+        <div class="mood-row">${MOODS.map(m => `
+          <button class="mood-btn ${formData.mood===m?'selected':''}" onclick="formData.mood='${m}';render()">${m}</button>`).join('')}
+        </div>
+        <textarea class="form-input" rows="6" id="ji-text" placeholder="What's on your mind today..." oninput="formData.text=this.value">${escHtml(formData.text)}</textarea>
+        <button class="btn-save" onclick="saveJournal()">Save Entry</button>
+      </div>`;
+  }
+
+  let entriesHtml = '';
+  if (entries.length === 0 && !showing) {
+    entriesHtml = `<div class="empty-state"><div class="empty-icon">✍️</div>No entries yet.<br>Tap + Add to start writing.</div>`;
+  } else {
+    entriesHtml = entries.map(entry => {
+      const isOpen = expandedJournalId === entry.id;
+      return `
+        <div class="journal-card" onclick="toggleJournal(${entry.id})">
+          <div class="journal-card-header">
+            <div class="journal-card-left">
+              <span class="journal-mood">${entry.mood}</span>
+              <div>
+                <div class="journal-meta-date">${entry.date}</div>
+                <div class="journal-meta-time">${entry.time}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="journal-chevron ${isOpen?'open'}">▼</span>
+              <button class="btn-del" onclick="event.stopPropagation();deleteJournal(${entry.id})">✕</button>
+            </div>
+          </div>
+          ${isOpen
+            ? `<div class="journal-full">${escHtml(entry.text)}</div>`
+            : `<div class="journal-preview">${escHtml(entry.text)}</div>`
+          }
+        </div>`;
+    }).join('');
+  }
+
+  return `<div class="content">
+    <div class="section-head">
+      <div class="section-head-left">
+        <span class="section-icon">✍️</span>
+        <span class="section-title">Journal</span>
+        ${entries.length > 0 ? `<span class="section-count">${entries.length}</span>` : ''}
+      </div>
+      <button class="btn-add ${showing?'cancel':''}" onclick="toggleAdd('journal')">${showing?'Cancel':'+ Add'}</button>
+    </div>
+    ${formHtml}
+    ${entriesHtml}
+  </div>`;
+}
+
+// ── ACTIONS ──
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleAdd(key) {
+  showingAddForm[key] = !showingAddForm[key];
+  editingId = null;
+  formData = { title: '', note: '', status: 'In Progress', text: '', mood: '😊' };
+  render();
+  if (showingAddForm[key]) {
+    setTimeout(() => {
+      const el = document.querySelector('#fi-title, #ji-text');
+      if (el) el.focus();
+    }, 50);
+  }
+}
+
+function saveItem(key) {
+  const titleEl = document.getElementById('fi-title');
+  const noteEl = document.getElementById('fi-note');
+  const title = titleEl ? titleEl.value.trim() : formData.title.trim();
+  const note = noteEl ? noteEl.value.trim() : formData.note.trim();
+  if (!title) return;
+  const items = load(SECTIONS[key].storageKey);
+  items.unshift({ id: Date.now(), title, note, status: formData.status, date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) });
+  save(SECTIONS[key].storageKey, items);
+  showingAddForm[key] = false;
+  formData = { title: '', note: '', status: 'In Progress', text: '', mood: '😊' };
+  render();
+}
+
+function deleteItem(key, id) {
+  const items = load(SECTIONS[key].storageKey).filter(i => i.id !== id);
+  save(SECTIONS[key].storageKey, items);
+  render();
+}
+
+function startEdit(key, id) {
+  editingId = id;
+  render();
+}
+
+function updateEditStatus(key, id, status) {
+  const items = load(SECTIONS[key].storageKey);
+  const item = items.find(i => i.id === id);
+  if (item) item.status = status;
+  save(SECTIONS[key].storageKey, items);
+  render();
+}
+
+function saveEdit(key, id) {
+  const titleEl = document.getElementById('ei-title-' + id);
+  const noteEl  = document.getElementById('ei-note-' + id);
+  if (!titleEl) return;
+  const items = load(SECTIONS[key].storageKey);
+  const item = items.find(i => i.id === id);
+  if (item) {
+    item.title = titleEl.value.trim() || item.title;
+    item.note  = noteEl ? noteEl.value.trim() : item.note;
+  }
+  save(SECTIONS[key].storageKey, items);
+  editingId = null;
+  render();
+}
+
+function saveJournal() {
+  const textEl = document.getElementById('ji-text');
+  const text = textEl ? textEl.value.trim() : formData.text.trim();
+  if (!text) return;
+  const entries = load('currents-journal');
+  entries.unshift({
+    id: Date.now(),
+    text,
+    mood: formData.mood,
+    date: new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+  });
+  save('currents-journal', entries);
+  showingAddForm.journal = false;
+  formData = { title: '', note: '', status: 'In Progress', text: '', mood: '😊' };
+  render();
+}
+
+function deleteJournal(id) {
+  const entries = load('currents-journal').filter(e => e.id !== id);
+  save('currents-journal', entries);
+  render();
+}
+
+function toggleJournal(id) {
+  expandedJournalId = expandedJournalId === id ? null : id;
+  render();
+}
+
+// ── INIT ──
+setHeaderDate();
+render();
+</script>
+</body>
+</html>
