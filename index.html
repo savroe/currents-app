@@ -22,10 +22,10 @@ body{font-family:'DM Sans',sans-serif;font-size:14px;background:var(--wh);color:
 .lbl{font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--sg);margin-bottom:10px;margin-top:26px;}
 .lbl:first-child{margin-top:0;}
 .si{display:flex;align-items:baseline;padding:10px 0 10px 14px;border-left:3px solid transparent;gap:0;}
-.si.on{border-left-color:var(--tm);}
-.st{font-size:12px;font-weight:500;min-width:82px;flex-shrink:0;color:var(--tm);}
-.si.off .st{color:var(--sg);}
-.se{font-size:14px;color:var(--kp);}
+.si.on{border-left-color:var(--co);}
+.st{font-size:16px;font-weight:500;min-width:90px;flex-shrink:0;color:var(--tm);}
+.si.off .st{color:var(--sg);}.si.on .st{color:var(--co);}.si.on .st{color:var(--co);}
+.se{font-size:18px;color:var(--kp);}
 .si.off .se{opacity:.55;}
 .sdx{margin-left:auto;background:none;border:none;color:var(--sg);font-size:18px;cursor:pointer;padding:0 4px;opacity:.35;}
 .sdx:active{opacity:1;color:var(--co);}
@@ -61,8 +61,7 @@ body{font-family:'DM Sans',sans-serif;font-size:14px;background:var(--wh);color:
 .cc{display:flex;flex-direction:column;align-items:center;padding:2px 0;min-height:36px;position:relative;cursor:pointer;}
 .cn{font-size:12px;color:var(--kp);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:400;transition:background .12s;}
 .cn.td{background:var(--co);color:var(--wh);font-weight:600;}
-.cn.ot{opacity:.22;}
-.cc:active .cn:not(.td){background:var(--pb);}
+.cn.ot{opacity:.22;}.cn.sel{background:var(--td);color:var(--wh);font-weight:600;}.cdot{width:4px;height:4px;border-radius:50%;background:var(--co);margin-top:2px;}.cc:active .cn:not(.td):not(.sel){background:var(--pb);}.dpanel{border:1px solid var(--sd);border-radius:13px;padding:14px;margin-top:12px;animation:fu .18s ease both;}
 .subnav{display:flex;gap:7px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;}
 .subnav::-webkit-scrollbar{display:none;}
 .spl{flex-shrink:0;border-radius:20px;padding:7px 16px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1.5px solid var(--sd);background:var(--wh);color:var(--sg);transition:all .15s;}
@@ -148,7 +147,7 @@ textarea.mi{resize:none;line-height:1.6;}
 </nav>
 <script>
 var T=new Date(),ct='calendar',cs='watching',cy=T.getFullYear(),cm=T.getMonth();
-var ssf=false,sti='',sev='',eid=null,exj=null;
+var ssf=false,sti='',sev='',eid=null,exj=null,showTF=false,selDay=null,showDF=false,dti='',dev2='';
 var af={watching:0,reading:0,listening:0,journal:0};
 var fd={t:'',n:'',s:'In Progress',tx:'',m:'😊'};
 function ld(k){try{return JSON.parse(localStorage.getItem(k))||[];}catch{return[];}}
@@ -164,7 +163,7 @@ function sh(tab){
   bp.style.display=['calendar','shop','lists'].includes(tab)?'flex':'none';
 }
 function go(tab){
-  ct=tab;eid=null;exj=null;af={watching:0,reading:0,listening:0,journal:0};fd={t:'',n:'',s:'In Progress',tx:'',m:'😊'};ssf=false;
+  ct=tab;eid=null;exj=null;af={watching:0,reading:0,listening:0,journal:0};fd={t:'',n:'',s:'In Progress',tx:'',m:'😊'};ssf=false;showTF=false;selDay=null;showDF=false;showTF=false;
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('n-'+tab).classList.add('on');
   sh(tab);render();
@@ -187,25 +186,75 @@ function rCal(){
   if(ssf)sf='<div class="sform"><div class="frow"><input class="fi fitw" id="sti" placeholder="9am" value="'+e(sti)+'" oninput="sti=this.value"><input class="fi few" id="sev" placeholder="Event name" value="'+e(sev)+'" oninput="sev=this.value" onkeydown="if(event.key===\'Enter\')savSc()"></div><div class="brow"><button class="bs" onclick="savSc()">Add</button><button class="bcc" onclick="ssf=false;render()">Cancel</button></div></div>';
   var sl=sc.length===0&&!ssf?'<div class="semp">No events yet — tap + to add one.</div>':sc.map(i=>'<div class="si '+(ia(i.time)?'on':'off')+'"><span class="st">'+e(i.time)+'</span><span class="se">'+e(i.event)+'</span><button class="sdx" onclick="dSc('+i.id+')">×</button></div>').join('');
   var tl=td.map(t=>'<div class="ti"><div class="tdot"></div><span class="tt'+(t.done?' dn':'')+'" onclick="togTd('+t.id+')">'+e(t.text)+'</span><button class="tx" onclick="dTd('+t.id+')">×</button></div>').join('');
-  tl+='<div class="tarow"><input class="tinp" id="tdi" placeholder="Add a task…" onkeydown="if(event.key===\'Enter\')savTd()"><button class="btadd" onclick="savTd()">+</button></div>';
-  return '<div class="pg"><div class="lbl">Schedule</div>'+sf+sl+'<div class="lbl">Todo</div><div>'+tl+'</div><div class="lbl">Calendar</div>'+rMCal()+'</div>';
+  if(showTF)tl+='<div class="tarow"><input class="tinp" id="tdi" placeholder="Add a task…" onkeydown="if(event.key===\'Enter\')savTd()" autofocus><button class="btadd" onclick="savTd()">+</button></div>';
+  var todoHdr='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:26px;margin-bottom:10px;"><span class="lbl" style="margin:0">Todo</span><button onclick="showTF=!showTF;render();if(showTF)setTimeout(function(){var el=document.getElementById(\'tdi\');if(el)el.focus();},50)" style="background:none;border:none;font-size:13px;font-weight:600;color:var(--co);cursor:pointer;padding:0;letter-spacing:.3px;">+ Add</button></div>';
+  return '<div class="pg"><div class="lbl">Schedule</div>'+sf+sl+todoHdr+'<div>'+tl+'</div><div class="lbl">Calendar</div>'+rMCal()+'</div>';
 }
 function savSc(){var t=document.getElementById('sti'),ev=document.getElementById('sev');var tm=(t?t.value:sti).trim(),evt=(ev?ev.value:sev).trim();if(!evt)return;var it=ld('sc');it.push({id:Date.now(),time:tm,event:evt});sv('sc',it);ssf=false;sti='';sev='';render();}
 function dSc(id){sv('sc',ld('sc').filter(i=>i.id!==id));render();}
 function savTd(){var el=document.getElementById('tdi'),tx=el?el.value.trim():'';if(!tx)return;var td=ld('td');td.push({id:Date.now(),text:tx,done:false});sv('td',td);render();}
 function togTd(id){var td=ld('td'),t=td.find(i=>i.id===id);if(t)t.done=!t.done;sv('td',td);render();}
 function dTd(id){sv('td',ld('td').filter(i=>i.id!==id));render();}
+function dkey(y,m,d){return y+"-"+(m+1)+"-"+d;}
+function evsFor(k){return ld("evs").filter(function(i){return i.key===k;}).sort(function(a,b){return (a.time||"").localeCompare(b.time||"");});}
+function tapDay(d){selDay=selDay===d?null:d;showDF=false;render();}
+function savDev(){
+  var t=document.getElementById("dti"),ev=document.getElementById("dev2");
+  var tm=(t?t.value:dti).trim(),evt=(ev?ev.value:dev2).trim();
+  if(!evt||selDay===null)return;
+  var it=ld("evs");it.push({id:Date.now(),key:dkey(cy,cm,selDay),time:tm,event:evt});
+  sv("evs",it);showDF=false;dti="";dev2="";render();
+}
+function dEv(id){sv("evs",ld("evs").filter(function(i){return i.id!==id;}));render();}
 function rMCal(){
-  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var DN=['S','M','T','W','T','F','S'];
+  var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var DN=["S","M","T","W","T","F","S"];
   var f=new Date(cy,cm,1),dw=f.getDay(),dm=new Date(cy,cm+1,0).getDate(),dp=new Date(cy,cm,0).getDate();
-  var cl='';
+  var cl="";
   for(var i=dw-1;i>=0;i--)cl+='<div class="cc"><div class="cn ot">'+(dp-i)+'</div></div>';
-  for(var d=1;d<=dm;d++){var it=(d===T.getDate()&&cm===T.getMonth()&&cy===T.getFullYear());cl+='<div class="cc"><div class="cn'+(it?' td':'')+'">'+(d)+'</div></div>';}
+  for(var dd=1;dd<=dm;dd++){
+    var isTd=(dd===T.getDate()&&cm===T.getMonth()&&cy===T.getFullYear());
+    var isSel=selDay===dd;
+    var evs=evsFor(dkey(cy,cm,dd));
+    var cls="cn"+(isTd?" td":"")+(isSel&&!isTd?" sel":"");
+    cl+='<div class="cc" onclick="tapDay('+dd+')">';
+    cl+='<div class="'+cls+'">'+dd+'</div>';
+    if(evs.length>0&&!isTd)cl+='<div class="cdot"></div>';
+    cl+='</div>';
+  }
   var rm=(dw+dm)%7===0?0:7-(dw+dm)%7;
   for(var d2=1;d2<=rm;d2++)cl+='<div class="cc"><div class="cn ot">'+d2+'</div></div>';
-  return '<div class="calw"><div class="cnav"><button class="cnb" onclick="cm--;if(cm<0){cm=11;cy--;}render()">&#8249;</button><div class="cmt">'+MN[cm]+' '+cy+'</div><button class="cnb" onclick="cm++;if(cm>11){cm=0;cy++;}render()">&#8250;</button></div><div class="cgr">'+DN.map(d=>'<div class="cdw">'+d+'</div>').join('')+cl+'</div></div>';
+  var out='<div class="calw"><div class="cnav">';
+  out+='<button class="cnb" onclick="cm--;if(cm<0){cm=11;cy--;}selDay=null;render()">&#8249;</button>';
+  out+='<div class="cmt">'+MN[cm]+' '+cy+'</div>';
+  out+='<button class="cnb" onclick="cm++;if(cm>11){cm=0;cy++;}selDay=null;render()">&#8250;</button>';
+  out+='</div><div class="cgr">';
+  out+=DN.map(function(x){return '<div class="cdw">'+x+'</div>';}).join("");
+  out+=cl+'</div></div>';
+  if(selDay!==null){
+    var sk=dkey(cy,cm,selDay),sevs=evsFor(sk);
+    var slbl=new Date(cy,cm,selDay).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+    var df="";
+    if(showDF){
+      df+='<div class="sform" style="margin-top:10px">';
+      df+='<div class="frow"><input class="fi fitw" id="dti" placeholder="9am" oninput="dti=this.value">';
+      df+='<input class="fi few" id="dev2" placeholder="Event name" oninput="dev2=this.value" onkeydown="if(event.key===&quot;Enter&quot;)savDev()"></div>';
+      df+='<div class="brow"><button class="bs" onclick="savDev()">Add</button><button class="bcc" onclick="showDF=false;render()">Cancel</button></div></div>';
+    }
+    var el=sevs.length===0&&!showDF
+      ?'<div class="semp" style="padding-left:0">No events yet.</div>'
+      :sevs.map(function(ev){
+          return '<div class="si off" style="padding-left:0;border-left:none"><span class="st">'+e(ev.time||"\u2014")+'</span><span class="se">'+e(ev.event)+'</span><button class="sdx" onclick="dEv('+ev.id+')">&#215;</button></div>';
+        }).join("");
+    out+='<div class="dpanel">';
+    out+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    out+='<div style="font-family:&quot;DM Serif Display&quot;,serif;font-size:17px;color:var(--kp)">'+slbl+'</div>';
+    out+='<button onclick="showDF=!showDF;render();if(showDF)setTimeout(function(){var x=document.getElementById(&quot;dev2&quot;);if(x)x.focus();},50)" style="background:var(--td);color:#fff;border:none;border-radius:8px;padding:6px 13px;font-size:11px;font-weight:600;cursor:pointer">'+(showDF?"Cancel":"+ Add")+'</button>';
+    out+='</div>'+df+el+'</div>';
+  }
+  return out;
 }
+
 var MS={watching:{l:'Watching',ic:'▶',ph:'What are you watching?',sk:'cw'},reading:{l:'Reading',ic:'📖',ph:'What are you reading?',sk:'cr'},listening:{l:'Listening',ic:'♪',ph:'What are you listening to?',sk:'cl'}};
 var ST=['In Progress','Finished','Paused','Dropped'],SC={'In Progress':'ip','Finished':'fin','Paused':'pau','Dropped':'drp'};
 var MOODS=['😊','😌','😐','😔','😤','🥳','😴','🤔','💭','🌊'];
